@@ -1,0 +1,9 @@
+
+
+# Token saver runtime data
+.agent-logs/
+.agent-tools/stats.jsonl
+
+# Python
+__pycache__/
+*.py[cod]

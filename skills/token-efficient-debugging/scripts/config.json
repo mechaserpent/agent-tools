@@ -1,0 +1,11 @@
+{
+  "budget_tokens": 2500,
+  "passthrough_tokens": 1200,
+  "head_lines": 20,
+  "tail_lines": 40,
+  "context_before": 3,
+  "context_after": 8,
+  "max_signal_blocks": 80,
+  "log_dir": ".agent-logs",
+  "stats_file": ".agent-tools/stats.jsonl"
+}
