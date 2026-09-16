@@ -7,6 +7,9 @@ INSTALL_DIR="${AGENT_TOOLS_INSTALL_DIR:-$HOME/.local/share/agent-tools}"
 BIN_DIR="${AGENT_TOOLS_BIN_DIR:-$HOME/.local/bin}"
 SKILL_DIR="${AGENT_TOOLS_SKILL_DIR:-$HOME/.agents/skills/token-efficient-debugging}"
 CODEX_DIR="${CODEX_HOME:-$HOME/.codex}"
+PROJECT_DIR="${AGENT_TOOLS_PROJECT_DIR:-$(pwd)}"
+COPILOT_FILE="$PROJECT_DIR/.github/copilot-instructions.md"
+COPILOT_SOURCE="$INSTALL_DIR/adapters/vscode-copilot/copilot-instructions.md"
 
 mkdir -p "$(dirname "$INSTALL_DIR")" "$BIN_DIR" "$(dirname "$SKILL_DIR")" "$CODEX_DIR"
 
@@ -81,6 +84,34 @@ path.parent.mkdir(parents=True, exist_ok=True)
 path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
 PY
 
+# Install project-level VS Code Copilot instructions without overwriting user content.
+mkdir -p "$(dirname "$COPILOT_FILE")"
+python3 - "$COPILOT_FILE" "$COPILOT_SOURCE" <<'PY'
+import pathlib
+import sys
+
+path = pathlib.Path(sys.argv[1])
+source = pathlib.Path(sys.argv[2])
+start = "<!-- agent-tools:start -->"
+end = "<!-- agent-tools:end -->"
+block = start + "\n" + source.read_text(encoding="utf-8").strip() + "\n" + end
+
+if path.exists():
+    text = path.read_text(encoding="utf-8")
+else:
+    text = ""
+
+if start in text and end in text:
+    before = text.split(start, 1)[0].rstrip()
+    after = text.split(end, 1)[1].lstrip()
+    text = (before + "\n\n" if before else "") + block + ("\n\n" + after if after else "")
+else:
+    text = text.rstrip()
+    text = (text + "\n\n" if text else "") + block + "\n"
+
+path.write_text(text, encoding="utf-8")
+PY
+
 chmod +x "$INSTALL_DIR/skills/token-efficient-debugging/scripts/"*.py
 
 echo
@@ -100,6 +131,9 @@ Skill:
 
 Codex hooks:
   $HOOKS_FILE
+
+VS Code Copilot instructions:
+  $COPILOT_FILE
 
 Make sure $BIN_DIR is in PATH.
 MSG
