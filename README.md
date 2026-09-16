@@ -5,7 +5,7 @@ Reusable tools and agent integrations for token-efficient software development.
 The repository keeps three layers separate:
 
 - `skills/` — reusable agent skills and their executable scripts.
-- `adapters/` — agent-specific integrations such as Codex hooks.
+- `adapters/` — agent-specific integrations such as Codex hooks and VS Code Copilot instructions.
 - `AGENTS.md` — instructions for agents working inside this repository.
 
 ## Quick start
@@ -20,6 +20,8 @@ cd agent-tools
 
 The installer is designed to work from the cloned directory. It does **not** depend on a `.agent-tools/` directory inside the clone.
 
+By default, `./install.sh` installs the shared CLI/skill, configures the Codex hook, and adds the managed VS Code Copilot instructions to the project from which the installer was run.
+
 ## Installation locations
 
 By default, `install.sh` creates the following links/files:
@@ -32,17 +34,41 @@ By default, `install.sh` creates the following links/files:
 | CLI: `tkstats` | `~/.local/bin/tkstats` |
 | Shared skill | `~/.agents/skills/token-efficient-debugging` |
 | Codex hooks | `~/.codex/hooks.json` |
+| VS Code Copilot instructions | `<project>/.github/copilot-instructions.md` |
 
 The installed repository is a symlink to the clone, so `git pull` updates the installed tools without copying files around.
 
 The shared skill is also a symlink to the installed repository. This allows Codex and other compatible agent tooling to use the same skill without maintaining another copy.
+
+## VS Code Copilot
+
+The VS Code Copilot integration is project-level and uses `.github/copilot-instructions.md`. It teaches Copilot to use the same `tkrun`, `tkread`, and `tkstats` tools as the other agents.
+
+The installer writes a managed block into the project from which it is run. Existing content in `.github/copilot-instructions.md` is preserved; only an existing `agent-tools` managed block is replaced on subsequent installs.
+
+For example, to install agent-tools into one project while keeping the toolkit repository elsewhere:
+
+```bash
+cd /path/to/my-project
+/path/to/agent-tools/install.sh
+```
+
+Or explicitly select the target project:
+
+```bash
+AGENT_TOOLS_PROJECT_DIR=/path/to/my-project /path/to/agent-tools/install.sh
+```
+
+The adapter deliberately does not assume a particular VS Code/Copilot hook API. Codex gets automatic Bash interception through its hook adapter; Copilot gets portable repository instructions and can invoke the same core CLI tools explicitly.
+
+See `adapters/vscode-copilot/README.md` for adapter-specific details.
 
 ## Runtime files
 
 The tools intentionally keep runtime data separate from the source repository:
 
 - Command logs: `.agent-logs/` in the project where `tkrun` is executed.
-- Token statistics: `.agent-tools/stats.jsonl` in that project.
+- Token statistics: `.agent-logs/stats.jsonl` in that project.
 
 These paths are runtime data, not installation paths. They are ignored by Git by default.
 
@@ -106,10 +132,11 @@ AGENT_TOOLS_INSTALL_DIR="$HOME/tools/agent-tools" \
 AGENT_TOOLS_BIN_DIR="$HOME/bin" \
 AGENT_TOOLS_SKILL_DIR="$HOME/.agents/skills/token-efficient-debugging" \
 CODEX_HOME="$HOME/.codex" \
+AGENT_TOOLS_PROJECT_DIR="$HOME/projects/my-app" \
 ./install.sh
 ```
 
-All variables are optional.
+All variables are optional. `AGENT_TOOLS_PROJECT_DIR` controls where the VS Code Copilot instruction file is installed and defaults to the current working directory.
 
 ## Repository layout
 
@@ -120,10 +147,15 @@ agent-tools/
 ├── README.md
 ├── install.sh
 ├── adapters/
-│   └── codex/
-│       ├── hooks.json
-│       └── hooks/
-│           └── token_saver.py
+│   ├── codex/
+│   │   ├── hooks.json
+│   │   └── hooks/
+│   │       └── token_saver.py
+│   └── vscode-copilot/
+│       ├── README.md
+│       └── copilot-instructions.md
+├── .github/
+│   └── copilot-instructions.md
 └── skills/
     └── token-efficient-debugging/
         ├── SKILL.md
