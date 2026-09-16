@@ -2,18 +2,12 @@
 
 When running commands that may produce large output:
 
-- Prefer `.agent-tools/tkrun.py` for tests, builds, linting, and verbose commands.
-
+- Prefer `tkrun` for tests, builds, linting, and verbose commands after installation.
 - Prefer `rg` over reading whole directories or large files.
-
 - Prefer `git diff` over rereading modified files.
-
 - For large files, inspect relevant symbols or line ranges first.
-
 - Do not print complete large JSON files; use jq or targeted extraction.
-
 - If a command produces large output, preserve the full output on disk and return only actionable errors and a path to the complete log.
-
 
 # Agent Instructions
 
@@ -23,23 +17,23 @@ Use local deterministic tools before sending large amounts of data into model co
 
 ### Command execution
 
-For commands that may produce large output, prefer:
+For commands that may produce large output, prefer the installed `tkrun` command:
 
 ```bash
-python .agent-tools/tkrun.py -- <command>
+tkrun -- npm test
+tkrun -- npm run build
+tkrun -- npm run lint
+tkrun -- pytest
+tkrun -- cargo test
 ```
 
-Examples:
+If the tools have not been installed yet, use the repository-local script directly:
 
 ```bash
-python .agent-tools/tkrun.py -- npm test
-python .agent-tools/tkrun.py -- npm run build
-python .agent-tools/tkrun.py -- npm run lint
-python .agent-tools/tkrun.py -- pytest
-python .agent-tools/tkrun.py -- cargo test
+python skills/token-efficient-debugging/scripts/tkrun.py -- <command>
 ```
 
-The Codex PreToolUse hook may automatically wrap known verbose commands.
+The Codex PreToolUse hook installed by `install.sh` may automatically wrap known verbose commands.
 
 Do not bypass the wrapper unless the full raw output is specifically required.
 
@@ -50,13 +44,19 @@ Do not read an entire large file when a focused read is sufficient.
 Prefer:
 
 ```bash
-python .agent-tools/tkread.py src/example.ts --lines 100:220
+tkread src/example.ts --lines 100:220
 ```
 
 or:
 
 ```bash
-python .agent-tools/tkread.py src/example.ts --grep "fetchWeather"
+tkread src/example.ts --grep "fetchWeather"
+```
+
+Before installation, the equivalent repository-local command is:
+
+```bash
+python skills/token-efficient-debugging/scripts/tkread.py src/example.ts --lines 100:220
 ```
 
 Prefer `rg` for repository searches:
@@ -121,8 +121,14 @@ Token-saver numbers are estimates of model context avoided.
 
 They are not API billing measurements and must not be described as exact API token savings.
 
-To view statistics:
+To view statistics after installation:
 
 ```bash
-python .agent-tools/tkstats.py
+tkstats
+```
+
+Before installation:
+
+```bash
+python skills/token-efficient-debugging/scripts/tkstats.py
 ```
