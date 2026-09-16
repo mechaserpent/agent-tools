@@ -7,5 +7,5 @@
   "context_after": 8,
   "max_signal_blocks": 80,
   "log_dir": ".agent-logs",
-  "stats_file": ".agent-tools/stats.jsonl"
+  "stats_file": ".agent-logs/stats.jsonl"
 }
